@@ -1,4 +1,5 @@
 ### Communication Topology and Belief Dynamics in Multi-Agent LLM Reasoning Systems
+This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based) over iterative rounds. It'll compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
 
 #### Prerequisites
 
