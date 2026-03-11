@@ -5,7 +5,7 @@ This project investigates how communication topology affects reasoning in multi-
 
 - Python 3.10+
 - Ollama: https://ollama.com/
-- `irm https://ollama.com/install.ps1 | iex`
+- Windows Install: `irm https://ollama.com/install.ps1 | iex`
 
 #### Setup
 1. Pull required models via Ollama:
@@ -16,9 +16,9 @@ This project investigates how communication topology affects reasoning in multi-
    ```
 
 #### Usage
-Run an experiment:
+Run an experiment [not yet implemented]:
 ```bash
 python experiments/run.py --topology full --model qwen2.5:7b-instruct
 ```
 
-~~Available topologies: `independent`, `full`, `mediator`~~
+Available topologies: `independent`, `full`, `mediator`
