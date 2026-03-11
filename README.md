@@ -21,4 +21,4 @@ Run an experiment:
 python experiments/run.py --topology full --model qwen2.5:7b-instruct
 ```
 
-Available topologies: `independent`, `full`, `mediator`
+~~Available topologies: `independent`, `full`, `mediator`~~

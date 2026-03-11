@@ -6,7 +6,9 @@ def test_initial_response():
     """Test that an agent produces a structured response."""
     client = LLMClient()
     agent = Agent(agent_id=0, client=client)
-    result = agent.initial_response("If a book costs £8 and you buy 3, how much do you spend?")
+    result = agent.initial_response(
+        "If a book costs £8 and you buy 3, how much do you spend?"
+    )
     print(f"Agent response: {result}")
 
     assert result["answer"] is not None, "Agent returned no answer"
@@ -31,6 +33,38 @@ def test_revision():
     print("Revision test passed.")
 
 
+def test_parse_valid_json():
+    """Test parsing a valid JSON response."""
+    client = LLMClient()
+    agent = Agent(agent_id=0, client=client)
+
+    raw = '{"answer": 42, "confidence": 95, "reasoning": "Simple calculation"}'
+    result = agent.parse_response(raw)
+
+    assert result["answer"] == 42, f"Expected 42, got {result['answer']}"
+    assert result["confidence"] == 95, f"Expected 95, got {result['confidence']}"
+    assert result["reasoning"] == "Simple calculation"
+    assert result["raw"] == raw
+    print("Valid JSON parsing test passed.")
+
+
+def test_parse_json_with_extra_text():
+    """Test parsing JSON embedded in extra text."""
+    client = LLMClient()
+    agent = Agent(agent_id=0, client=client)
+
+    raw = 'Here\'s my answer: {"answer": 24, "confidence": 80, "reasoning": "8 * 3"} That\'s it!'
+    result = agent.parse_response(raw)
+
+    assert result["answer"] == 24
+    assert result["confidence"] == 80
+    assert result["reasoning"] == "8 * 3"
+    assert result["raw"] == raw
+    print("JSON with extra text parsing test passed.")
+
+
 if __name__ == "__main__":
     test_initial_response()
-    # test_revision()
+    test_revision()
+    test_parse_valid_json()
+    test_parse_json_with_extra_text()
