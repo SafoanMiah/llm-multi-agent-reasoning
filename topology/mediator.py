@@ -8,6 +8,7 @@ Agents only see the mediator's summary, never each other's raw responses.
 from core.agent import Agent
 from core.llm_client import LLMClient
 from core.config import MODELS, NUM_ROUNDS
+from topology.voting import VOTING_METHOD
 
 MEDIATOR_PROMPT = """
 You are a mediator summarising the responses of {n} mathematical reasoning agents.
@@ -98,14 +99,7 @@ def run_mediator(
         )
 
     # Final answer: majority vote from last round
-    final_answers = [r["answer"] for r in responses if r["answer"] is not None]
-    if not final_answers:
-        group_answer = None
-    else:
-        counts = {}
-        for a in final_answers:
-            counts[a] = counts.get(a, 0) + 1
-        group_answer = max(counts, key=counts.get)
+    group_answer = VOTING_METHOD([r["answer"] for r in responses])
 
     return {
         "group_answer": group_answer,

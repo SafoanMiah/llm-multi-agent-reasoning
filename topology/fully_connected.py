@@ -7,6 +7,7 @@ No mediator, agents communicate directly with each other.
 
 from core.agent import Agent
 from core.config import NUM_ROUNDS
+from topology.voting import VOTING_METHOD
 
 
 def format_peer_responses(agent_id: int, responses: list[dict]) -> str:
@@ -67,14 +68,7 @@ def run_fully_connected(
         round_log.append({"round": round_num, "responses": responses})
 
     # Final answer: majority vote from last round
-    final_answers = [r["answer"] for r in responses if r["answer"] is not None]
-    if not final_answers:
-        group_answer = None
-    else:
-        counts = {}
-        for a in final_answers:
-            counts[a] = counts.get(a, 0) + 1
-        group_answer = max(counts, key=counts.get)
+    group_answer = VOTING_METHOD([r["answer"] for r in responses])
 
     return {
         "group_answer": group_answer,

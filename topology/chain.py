@@ -8,6 +8,7 @@ Final answer is majority vote from the 4 chain-ending agents.
 """
 
 from core.agent import Agent
+from topology.voting import VOTING_METHOD
 
 
 def run_single_chain(
@@ -73,13 +74,7 @@ def run_chain(agents: list[Agent], question: str) -> dict:
             final_answers.append(last["answer"])
 
     # Majority vote from the 4 chain-ending agents
-    if not final_answers:
-        group_answer = None
-    else:
-        counts = {}
-        for a in final_answers:
-            counts[a] = counts.get(a, 0) + 1
-        group_answer = max(counts, key=counts.get)
+    group_answer = VOTING_METHOD(final_answers)
 
     return {
         "group_answer": group_answer,
