@@ -52,16 +52,17 @@ class Agent:
         """Extract JSON from model response, with fallback."""
         try:
             # Find JSON in the response
-            match = re.search(r"\{.*\}", raw, re.DOTALL)
-            if match:
-                parsed = json.loads(match.group())
-                return {
-                    "answer": parsed.get("answer"),
-                    "confidence": parsed.get("confidence", 50),
-                    "reasoning": parsed.get("reasoning", ""),
-                    "raw": raw,
-                }
-        except:
+            match = re.search(r"\{.*\}", raw, re.DOTALL)  # Incase of extra text
+            if not match:
+                raise ValueError("No JSON found in response")
+            parsed = json.loads(match.group())
+            return {
+                "answer": float(parsed.get("answer", 0)),
+                "confidence": int(parsed.get("confidence", 0)),
+                "reasoning": str(parsed.get("reasoning", "")),
+                "raw": raw,
+            }
+        except (json.JSONDecodeError, ValueError, TypeError):
             # Fallback for unparseable responses
             return {
                 "answer": None,
