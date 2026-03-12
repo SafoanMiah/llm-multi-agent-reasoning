@@ -38,6 +38,7 @@ def run_fully_connected(
         responses.append(
             {
                 "agent_id": agent.agent_id,
+                "model": agent.client.model,
                 "answer": r["answer"],
                 "confidence": r["confidence"],
                 "reasoning": r["reasoning"],
@@ -55,6 +56,7 @@ def run_fully_connected(
             new_responses.append(
                 {
                     "agent_id": agent.agent_id,
+                    "model": agent.client.model,
                     "answer": r["answer"],
                     "confidence": r["confidence"],
                     "reasoning": r["reasoning"],
@@ -66,10 +68,13 @@ def run_fully_connected(
 
     # Final answer: majority vote from last round
     final_answers = [r["answer"] for r in responses if r["answer"] is not None]
-    counts = {}
-    for a in final_answers:
-        counts[a] = counts.get(a, 0) + 1
-    group_answer = max(counts, key=counts.get)
+    if not final_answers:
+        group_answer = None
+    else:
+        counts = {}
+        for a in final_answers:
+            counts[a] = counts.get(a, 0) + 1
+        group_answer = max(counts, key=counts.get)
 
     return {
         "group_answer": group_answer,
