@@ -14,10 +14,8 @@ You are a mediator summarising the responses of {n} mathematical reasoning agent
 
 Here are their responses to this problem:
 
-Question:
 {question}
 
-Agent Responses:
 {agent_responses}
 
 Write a brief, neutral summary that includes:
@@ -44,12 +42,7 @@ def format_agent_responses(responses: list[dict]) -> str:
 def run_mediator(
     agents: list[Agent], question: str, num_rounds: int = NUM_ROUNDS
 ) -> dict:
-    """
-    Run mediator topology for a single question across multiple rounds.
-
-    Returns:
-        dict with 'group_answer' and 'rounds' (list of per-round data).
-    """
+    """Run mediator topology for a single question across multiple rounds."""
     mediator_client = LLMClient(model=MODELS[0])
 
     for agent in agents:
@@ -64,7 +57,6 @@ def run_mediator(
         responses.append(
             {
                 "agent_id": agent.agent_id,
-                "model": agent.client.model,
                 "answer": r["answer"],
                 "confidence": r["confidence"],
                 "reasoning": r["reasoning"],
@@ -91,7 +83,6 @@ def run_mediator(
             responses.append(
                 {
                     "agent_id": agent.agent_id,
-                    "model": agent.client.model,
                     "answer": r["answer"],
                     "confidence": r["confidence"],
                     "reasoning": r["reasoning"],
@@ -108,16 +99,13 @@ def run_mediator(
 
     # Final answer: majority vote from last round
     final_answers = [r["answer"] for r in responses if r["answer"] is not None]
-
     if not final_answers:
-        return {"group_answer": None, "rounds": round_log}
-
-    counts = {}
-    for a in final_answers:
-        counts[a] = counts.get(a, 0) + 1
-
-    # Pick answer with most votes (first if multiple share max)
-    group_answer = max(counts, key=counts.get)
+        group_answer = None
+    else:
+        counts = {}
+        for a in final_answers:
+            counts[a] = counts.get(a, 0) + 1
+        group_answer = max(counts, key=counts.get)
 
     return {
         "group_answer": group_answer,
