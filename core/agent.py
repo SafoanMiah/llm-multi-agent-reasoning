@@ -65,18 +65,20 @@ class Agent:
                 raise ValueError("No JSON found in response")
             parsed = json.loads(match.group())
             return {
-                "answer": float(parsed.get("answer", 0)),
+                "answer": float(parsed["answer"]) if "answer" in parsed else None,
                 "confidence": int(parsed.get("confidence", 0)),
                 "reasoning": str(parsed.get("reasoning", "")),
                 "raw": raw,
+                "parse_failed": False,
             }
         except (json.JSONDecodeError, ValueError, TypeError):
             # Fallback for unparseable responses
             return {
                 "answer": None,
-                "confidence": 0,
+                "confidence": None,  # Use None instead of 0 to distinguish parse failure
                 "reasoning": "Failed to parse",
                 "raw": raw,
+                "parse_failed": True,
             }
 
     def initial_response(self, question: str) -> dict:
@@ -85,6 +87,12 @@ class Agent:
             question, system_message=AGENT_SYSTEM_PROMPT, temperature=0.7
         )
         parsed = self.parse_response(raw)
+
+        # Add token and time stats from the LLM call
+        parsed["prompt_tokens"] = self.client.last_prompt_tokens
+        parsed["completion_tokens"] = self.client.last_completion_tokens
+        parsed["response_time_s"] = self.client.last_response_time_s
+
         self.history.append(parsed)
         return parsed
 
@@ -96,6 +104,12 @@ class Agent:
         )
         raw = self.client.prompt(prompt, temperature=0.7)
         parsed = self.parse_response(raw)
+
+        # Add token and time stats from the LLM call
+        parsed["prompt_tokens"] = self.client.last_prompt_tokens
+        parsed["completion_tokens"] = self.client.last_completion_tokens
+        parsed["response_time_s"] = self.client.last_response_time_s
+
         self.history.append(parsed)
         return parsed
 

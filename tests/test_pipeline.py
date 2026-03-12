@@ -15,7 +15,6 @@ def test_independent():
     result = run_independent(agents, QUESTION)
 
     print(f"Group answer: {result['group_answer']}")
-    print(f"Vote method: {result['vote_method']}")
     for agent in result["agent_responses"]:
         print(
             f"  Agent {agent['agent_id']}: {agent['answer']} (confidence: {agent['confidence']})"

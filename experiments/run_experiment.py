@@ -7,6 +7,7 @@ Usage:
     python -m experiments.run_experiment --topology independent
     python -m experiments.run_experiment --topology full
     python -m experiments.run_experiment --topology mediator
+    python -m experiments.run_experiment --topology chain
 """
 
 import argparse
@@ -22,92 +23,101 @@ from dataset.gsm8k_loader import load_gsm8k
 from topology.independent import run_independent
 from topology.fully_connected import run_fully_connected
 from topology.mediator import run_mediator
+from topology.chain import run_chain
+
+TOPOLOGY_RUNNERS = {
+    "independent": run_independent,
+    "full": run_fully_connected,
+    "mediator": run_mediator,
+    "chain": run_chain,
+}
+
+FIELDNAMES = [
+    "topology",
+    "question_idx",
+    "question",
+    "expected_answer",
+    "group_answer",
+    "correct",
+    "round",
+    "agent_id",
+    "model",
+    "answer",
+    "confidence",
+    "reasoning",
+    "parse_failed",
+    "prompt_tokens",
+    "completion_tokens",
+    "response_time_s",
+]
 
 
 def create_agents() -> list[Agent]:
     """Create one agent per model defined in config."""
-    agents = []
-    for i, model in enumerate(MODELS):
-        client = LLMClient(model=model)
-        agents.append(Agent(agent_id=i, client=client))
-    return agents
+    return [
+        Agent(agent_id=i, client=LLMClient(model=model))
+        for i, model in enumerate(MODELS)
+    ]
 
 
-def run_topology(topology: str, agents: list[Agent], question: str) -> dict:
-    """Dispatch to the correct topology runner."""
-    if topology == "independent":
-        return run_independent(agents, question)
-    elif topology == "full":
-        return run_fully_connected(agents, question)
-    elif topology == "mediator":
-        return run_mediator(agents, question)
+def flatten_results(topology, q_idx, question, expected, result) -> list[dict]:
+    """Flatten a single question's results into CSV rows."""
+    group_answer = result["group_answer"]
+    if group_answer is None:
+        correct_val = None
     else:
-        raise ValueError(f"Unknown topology: {topology}")
+        correct_val = int(group_answer == expected)
 
+    base = {
+        "topology": topology,
+        "question_idx": q_idx,
+        "question": question,
+        "expected_answer": expected,
+        "group_answer": group_answer,
+        "correct": correct_val,
+    }
 
-def flatten_results(
-    topology: str, q_idx: int, question: str, expected: float, result: dict
-) -> list[dict]:
-    """Flatten a single question's results into CSV rows (one row per agent per round)."""
     rows = []
 
     if topology == "independent":
-        # Single round only
-        for agent_r in result["agent_responses"]:
+        round_blocks = [{"round": 1, "responses": result["agent_responses"]}]
+    elif topology == "chain":
+        round_blocks = [
+            {"round": c["chain"], "responses": c["responses"]} for c in result["chains"]
+        ]
+    else:
+        round_blocks = result["rounds"]
+
+    for block in round_blocks:
+        for agent_r in block["responses"]:
             rows.append(
                 {
-                    "topology": topology,
-                    "question_idx": q_idx,
-                    "question": question,
-                    "expected_answer": expected,
-                    "group_answer": result["group_answer"],
-                    "correct": float(result["group_answer"] == expected)
-                    if result["group_answer"] is not None
-                    else 0,
-                    "round": 1,
+                    **base,
+                    "round": block["round"],
                     "agent_id": agent_r["agent_id"],
                     "model": MODELS[agent_r["agent_id"]],
                     "answer": agent_r["answer"],
                     "confidence": agent_r["confidence"],
                     "reasoning": agent_r["reasoning"],
+                    "parse_failed": agent_r.get("parse_failed", False),
+                    "prompt_tokens": agent_r.get("prompt_tokens", 0),
+                    "completion_tokens": agent_r.get("completion_tokens", 0),
+                    "response_time_s": agent_r.get("response_time_s", 0.0),
                 }
             )
-    else:
-        # Multi-round topologies
-        for round_data in result["rounds"]:
-            for agent_r in round_data["responses"]:
-                rows.append(
-                    {
-                        "topology": topology,
-                        "question_idx": q_idx,
-                        "question": question,
-                        "expected_answer": expected,
-                        "group_answer": result["group_answer"],
-                        "correct": float(result["group_answer"] == expected)
-                        if result["group_answer"] is not None
-                        else 0,
-                        "round": round_data["round"],
-                        "agent_id": agent_r["agent_id"],
-                        "model": MODELS[agent_r["agent_id"]],
-                        "answer": agent_r["answer"],
-                        "confidence": agent_r["confidence"],
-                        "reasoning": agent_r["reasoning"],
-                    }
-                )
 
     return rows
 
 
 def run_experiment(topology: str):
     """Run a full experiment for one topology and save results."""
-    assert topology in TOPOLOGIES, f"Topology must be one of {TOPOLOGIES}"
-
-    print(f"\n{'=' * 60}")
+    print(f"\n{'=' * 50}")
     print(f"Running experiment: {topology}")
-    print(f"{'=' * 60}")
+    print(f"{'=' * 50}")
 
     agents = create_agents()
     questions = load_gsm8k(n=NUM_QUESTIONS, seed=DATASET_SEED)
+    runner = TOPOLOGY_RUNNERS[topology]
 
     # Output file
     results_dir = Path("results")
@@ -115,32 +125,17 @@ def run_experiment(topology: str):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = results_dir / f"{topology}_{timestamp}.csv"
 
-    fieldnames = [
-        "topology",
-        "question_idx",
-        "question",
-        "expected_answer",
-        "group_answer",
-        "correct",
-        "round",
-        "agent_id",
-        "model",
-        "answer",
-        "confidence",
-        "reasoning",
-    ]
-
     total_correct = 0
     start_time = time.time()
 
     with open(output_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
         writer.writeheader()
 
         for i, q in enumerate(questions):
             q_start = time.time()
 
-            result = run_topology(topology, agents, q["question"])
+            result = runner(agents, q["question"])
             rows = flatten_results(
                 topology, i, q["question"], q["expected_answer"], result
             )
@@ -162,12 +157,12 @@ def run_experiment(topology: str):
     total_time = time.time() - start_time
     accuracy = total_correct / len(questions) * 100
 
-    print(f"\n{'=' * 60}")
+    print(f"\n{'=' * 50}")
     print(f"Finished: {topology}")
     print(f"Accuracy: {total_correct}/{len(questions)} ({accuracy:.1f}%)")
     print(f"Time: {total_time:.0f}s")
     print(f"Saved to: {output_path}")
-    print(f"{'=' * 60}")
+    print(f"{'=' * 50}")
 
 
 if __name__ == "__main__":
@@ -175,10 +170,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--topology",
         type=str,
-        required=True,
         choices=TOPOLOGIES,
-        help="Topology to run: independent, full, or mediator",
+        default=None,
+        help="Topology to run. If not set, runs all topologies.",
     )
     args = parser.parse_args()
 
-    run_experiment(args.topology)
+    topologies = [args.topology] if args.topology else TOPOLOGIES
+    for t in topologies:
+        run_experiment(t)

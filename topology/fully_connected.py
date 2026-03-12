@@ -15,11 +15,13 @@ def format_peer_responses(agent_id: int, responses: list[dict]) -> str:
     lines = []
     for r in responses:
         if r["agent_id"] != agent_id:
-            lines.append(
-                f"Agent {r['agent_id']}: answer={r['answer']}, "
-                f"confidence={r['confidence']}, "
-                f"reasoning: {r['reasoning']}"
-            )
+            # Skip agents where answer is None (parse failure)
+            if r["answer"] is not None:
+                lines.append(
+                    f"Agent {r['agent_id']}: answer={r['answer']}, "
+                    f"confidence={r['confidence']}, "
+                    f"reasoning: {r['reasoning']}"
+                )
     return "Other agents' responses:\n" + "\n".join(lines)
 
 
@@ -43,6 +45,10 @@ def run_fully_connected(
                 "answer": r["answer"],
                 "confidence": r["confidence"],
                 "reasoning": r["reasoning"],
+                "parse_failed": r["parse_failed"],
+                "prompt_tokens": r["prompt_tokens"],
+                "completion_tokens": r["completion_tokens"],
+                "response_time_s": r["response_time_s"],
             }
         )
 
@@ -61,6 +67,10 @@ def run_fully_connected(
                     "answer": r["answer"],
                     "confidence": r["confidence"],
                     "reasoning": r["reasoning"],
+                    "parse_failed": r["parse_failed"],
+                    "prompt_tokens": r["prompt_tokens"],
+                    "completion_tokens": r["completion_tokens"],
+                    "response_time_s": r["response_time_s"],
                 }
             )
 

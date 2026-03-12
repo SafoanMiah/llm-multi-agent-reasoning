@@ -1,5 +1,5 @@
 ### Communication Topology and Belief Dynamics in Multi-Agent LLM Reasoning Systems
-This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based) over iterative rounds. It'll compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
+This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based, chain) over iterative rounds. It'll compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
 
 #### Prerequisites
 
@@ -17,14 +17,25 @@ This project investigates how communication topology affects reasoning in multi-
    ```
 
 #### Usage
-Run an experiment [not yet implemented]:
+Run all experiment:
 ```bash
-python experiments/run_experiment.py --topology independent --rounds 5 --questions 150
+    python -m experiments.run_experiment
 ```
 
-Available topologies: `independent`, `full`, `mediator`
+Run specific topologies:
+```bash
+    python -m experiments.run_experiment --topology independent
+    python -m experiments.run_experiment --topology full
+    python -m experiments.run_experiment --topology mediator
+    python -m experiments.run_experiment --topology chain
+```
 
-**Configuration:**
+Available topologies: `independent`, `full`, `mediator`, `chain`
+
+#### Configuration
+Configurable via `config.yaml`
+
+Default settings:
 - 4 agents (one each: gemma3:4b, phi4-mini, llama3.2:3b, qwen2.5:3b-instruct)
-- 5 rounds of reasoning per question
+- 3 rounds of reasoning per question
 - 150 questions from GSM8K test split

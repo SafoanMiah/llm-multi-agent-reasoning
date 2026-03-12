@@ -2,7 +2,7 @@
 Mediator Topology
 
 A mediator agent summarises all responses each round.
-Agents only see the mediator's summary, never each other's raw responses.
+Agents only see of mediator's summary, never each other's raw responses.
 """
 
 from core.agent import Agent
@@ -29,7 +29,7 @@ Be factual and concise. Do not state which answer is correct.
 
 
 def format_agent_responses(responses: list[dict]) -> str:
-    """Format agent responses for the mediator prompt."""
+    """Format agent responses for mediator prompt."""
     lines = []
     for r in responses:
         lines.append(
@@ -61,6 +61,10 @@ def run_mediator(
                 "answer": r["answer"],
                 "confidence": r["confidence"],
                 "reasoning": r["reasoning"],
+                "parse_failed": r["parse_failed"],
+                "prompt_tokens": r["prompt_tokens"],
+                "completion_tokens": r["completion_tokens"],
+                "response_time_s": r["response_time_s"],
             }
         )
 
@@ -77,7 +81,7 @@ def run_mediator(
             )
         )
 
-        # Each agent revises based on the mediator summary
+        # Each agent revises based on mediator summary
         responses = []
         for agent in agents:
             r = agent.revise(question, peer_info=f"Mediator summary:\n{summary}")
@@ -87,6 +91,10 @@ def run_mediator(
                     "answer": r["answer"],
                     "confidence": r["confidence"],
                     "reasoning": r["reasoning"],
+                    "parse_failed": r["parse_failed"],
+                    "prompt_tokens": r["prompt_tokens"],
+                    "completion_tokens": r["completion_tokens"],
+                    "response_time_s": r["response_time_s"],
                 }
             )
 

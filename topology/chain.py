@@ -44,6 +44,10 @@ def run_single_chain(
                 "answer": r["answer"],
                 "confidence": r["confidence"],
                 "reasoning": r["reasoning"],
+                "parse_failed": r["parse_failed"],
+                "prompt_tokens": r["prompt_tokens"],
+                "completion_tokens": r["completion_tokens"],
+                "response_time_s": r["response_time_s"],
             }
         )
 
