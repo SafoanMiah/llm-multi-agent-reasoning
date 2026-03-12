@@ -1,9 +1,10 @@
 import json
 import random
 from pathlib import Path
+from core.config import NUM_QUESTIONS, DATASET_SEED
 
 
-def load_gsm8k(n: int = 100, seed: int = 42) -> list[dict]:
+def load_gsm8k(n: int = NUM_QUESTIONS, seed: int = DATASET_SEED) -> list[dict]:
     """
     Load a random subset of GSM8K test questions from local JSONL file.
 

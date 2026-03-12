@@ -5,6 +5,7 @@ README.md               # instructions explaining how to run the project
 core/
    llm_client.py       # wrapper that sends prompts to the LLM and returns responses
    agent.py            # reasoning agent answers questions, outputs answer/confidence
+   config.py           # configuration variables
 
 topology/
    independent.py      # agents solve problems without seeing each other

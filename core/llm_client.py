@@ -1,4 +1,5 @@
 import requests
+from core.config import MODELS, OLLAMA_BASE_URL, TEMPERATURE
 
 
 class LLMClient:
@@ -6,19 +7,20 @@ class LLMClient:
 
     def __init__(
         self,
-        model: str = "qwen2.5:7b-instruct",
-        base_url: str = "http://localhost:11434",
+        model: str = None,
+        base_url: str = OLLAMA_BASE_URL,
     ):
         """
         model:
-        - qwen2.5:7b-instruct
-        - llama3.1:8b
-        - mistral:7b-instruct
+        - gemma3:4b (Google)
+        - phi4-mini (Microsoft)
+        - llama3.2:3b (Meta)
+        - qwen2.5:3b-instruct (Alibaba)
         """
-        self.model = model
+        self.model = model if model else MODELS[0]
         self.base_url = base_url
 
-    def chat(self, messages: list[dict], temperature: float = 0.7) -> str:
+    def chat(self, messages: list[dict], temperature: float = TEMPERATURE) -> str:
         """Send messages to the model and return the response text.
         0.7 temp is a good default for a varied responses, lower for more deterministic output."""
         response = requests.post(
@@ -34,7 +36,7 @@ class LLMClient:
         return response.json()["message"]["content"]
 
     def prompt(
-        self, user_message: str, system_message: str = None, temperature: float = 0.7
+        self, user_message: str, system_message: str = None, temperature: float = TEMPERATURE
     ) -> str:
         """Method for a single user prompt with system message."""
         messages = []

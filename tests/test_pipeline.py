@@ -1,17 +1,14 @@
 from core.llm_client import LLMClient
 from core.agent import Agent
+from core.config import MODELS
 from topology.independent import run_independent
 
 QUESTION = "Janet\u2019s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers' market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers' market?"
 
 
 def test_independent():
-    """Test independent topology with 3 agents."""
-    agents = [
-        Agent(0, LLMClient(model="qwen2.5:7b-instruct")),
-        Agent(1, LLMClient(model="llama3.1:8b")),
-        Agent(2, LLMClient(model="mistral:7b-instruct")),
-    ]
+    """Test independent topology with 4 agents."""
+    agents = [Agent(i, LLMClient(model=model)) for i, model in enumerate(MODELS)]
 
     result = run_independent(agents, QUESTION)
 

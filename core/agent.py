@@ -3,8 +3,9 @@ import re
 from core.llm_client import LLMClient
 
 AGENT_SYSTEM_PROMPT = """
+You are a mathematical reasoning agent. Solve the given problem step by step.
 
-You are a mathematical reasoning agent. When given a problem, respond in EXACTLY this JSON format and nothing else:
+Respond in EXACTLY this JSON format and nothing else:
 
 {
     "answer": <your numerical answer>,
@@ -12,25 +13,32 @@ You are a mathematical reasoning agent. When given a problem, respond in EXACTLY
     "reasoning": "<brief step-by-step reasoning>"
 }
 
-
 Rules:
-- "answer" must be a number (integer or float)
-- "confidence" must be an whole integer from 0 to 100
-- "reasoning" must be a short string explaining your steps
-- Output ONLY valid JSON, no extra text
+- "answer" must be a single number (integer or float), no units or text
+- "confidence" reflects how certain you are in your answer:
+    - 90-100: You are very confident the answer is correct
+    - 70-89: Fairly confident but some steps feel uncertain
+    - 50-69: Unsure, multiple approaches seem plausible
+    - Below 50: Guessing or very uncertain
+  Do NOT default to 100. Be honest about your certainty.
+- "reasoning" must show your working clearly in 2-3 sentences
+- Output ONLY valid JSON, no extra text before or after
 """
 
 REVISION_PROMPT_TEMPLATE = """
-You are a mathematical reasoning agent. Here is the problem:
+You previously answered this maths problem:
 
 {question}
 
-Your previous response was:
+Your previous response:
 {previous_response}
 
+Here is what other agents think:
 {peer_info}
 
-Reconsider your answer given the above. Respond in EXACTLY this JSON format and nothing else:
+Now reconsider. You may keep your answer if you believe it is correct, or change it if you see a mistake in your reasoning. Do not change your answer just because others disagree.
+
+Respond in EXACTLY this JSON format and nothing else:
 
 {{
     "answer": <your numerical answer>,
