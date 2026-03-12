@@ -23,7 +23,7 @@ def load_gsm8k(n: int = NUM_QUESTIONS, seed: int = DATASET_SEED) -> list[dict]:
     for item in sample:
         try:
             # Extract just the numerical answer after the ####
-            expected = float(item["answer"].split("#### ")[-1])
+            expected = float(item["answer"].split("#### ")[-1].replace(",", ""))
             questions.append(
                 {
                     "question": item["question"],

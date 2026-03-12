@@ -25,4 +25,4 @@ TEMPERATURE = 0.7
 OLLAMA_BASE_URL = "http://localhost:11434"
 
 # Topologies available
-TOPOLOGIES = ["independent", "full", "mediator"]
+TOPOLOGIES = ["independent", "full", "mediator", "chain"]
