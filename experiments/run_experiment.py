@@ -147,7 +147,7 @@ def run_experiment(topology: str):
 
             print(
                 f"  [{i + 1}/{len(questions)}] "
-                f"{'✓' if is_correct else 'INCORRECT'} "
+                f"{'✔️' if is_correct else '❌'} "
                 f"expected={q['expected_answer']}, got={result['group_answer']} "
                 f"({elapsed:.1f}s)"
             )
