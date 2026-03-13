@@ -5,6 +5,8 @@ A mediator agent summarises all responses each round.
 Agents only see of mediator's summary, never each other's raw responses.
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from core.agent import Agent
 from core.llm_client import LLMClient
 from core.config import MODELS, NUM_ROUNDS
@@ -69,7 +71,7 @@ def run_mediator(
 
     round_log.append({"round": 1, "responses": responses, "summary": None})
 
-    # Rounds 2+: mediator summarises, agents revise
+    # Rounds 2+: mediator summarises, agents revise (parallelized)
     for round_num in range(2, num_rounds + 1):
         # Mediator generates summary
         summary = mediator_client.prompt(
@@ -80,22 +82,29 @@ def run_mediator(
             )
         )
 
-        # Each agent revises based on mediator summary
+        # Each agent revises based on mediator summary (in parallel)
         responses = []
-        for agent in agents:
-            r = agent.revise(question, peer_info=f"Mediator summary:\n{summary}")
-            responses.append(
-                {
-                    "agent_id": agent.agent_id,
-                    "answer": r["answer"],
-                    "confidence": r["confidence"],
-                    "reasoning": r["reasoning"],
-                    "parse_failed": r["parse_failed"],
-                    "prompt_tokens": r["prompt_tokens"],
-                    "completion_tokens": r["completion_tokens"],
-                    "response_time_s": r["response_time_s"],
-                }
-            )
+        with ThreadPoolExecutor(max_workers=len(agents)) as executor:
+            peer_info = f"Mediator summary:\n{summary}"
+            future_to_agent = {
+                executor.submit(agent.revise, question, peer_info): agent
+                for agent in agents
+            }
+
+            for future in as_completed(future_to_agent):
+                agent = future_to_agent[future]
+                r = future.result()
+                responses.append(
+                    {
+                        "agent_id": agent.agent_id,
+                        "answer": r["answer"],
+                        "confidence": r["confidence"],
+                        "reasoning": r["reasoning"],
+                        "parse_failed": r["parse_failed"],
+                        "prompt_tokens": r["prompt_tokens"],
+                        "completion_tokens": r["completion_tokens"],
+                    }
+                )
 
         round_log.append(
             {

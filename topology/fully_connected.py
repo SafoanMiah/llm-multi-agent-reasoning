@@ -5,6 +5,8 @@ Each agent sees all other agents responses before revising.
 No mediator, agents communicate directly with each other.
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from core.agent import Agent
 from core.config import NUM_ROUNDS
 from topology.voting import VOTING_METHOD
@@ -53,25 +55,33 @@ def run_fully_connected(
 
     round_log.append({"round": 1, "responses": responses})
 
-    # Rounds 2+: each agent sees all others and revises
+    # Rounds 2+: each agent sees all others and revises (parallelized)
     for round_num in range(2, num_rounds + 1):
         new_responses = []
-        for agent in agents:
-            peer_info = format_peer_responses(agent.agent_id, responses)
-            r = agent.revise(question, peer_info=peer_info)
-            new_responses.append(
-                {
-                    "agent_id": agent.agent_id,
-                    "model": agent.client.model,
-                    "answer": r["answer"],
-                    "confidence": r["confidence"],
-                    "reasoning": r["reasoning"],
-                    "parse_failed": r["parse_failed"],
-                    "prompt_tokens": r["prompt_tokens"],
-                    "completion_tokens": r["completion_tokens"],
-                    "response_time_s": r["response_time_s"],
-                }
-            )
+        with ThreadPoolExecutor(max_workers=len(agents)) as executor:
+            # Submit all revisions in parallel
+            future_to_agent = {}
+            for agent in agents:
+                peer_info = format_peer_responses(agent.agent_id, responses)
+                future = executor.submit(agent.revise, question, peer_info)
+                future_to_agent[future] = agent
+
+            # Collect results as they complete
+            for future in as_completed(future_to_agent):
+                agent = future_to_agent[future]
+                r = future.result()
+                new_responses.append(
+                    {
+                        "agent_id": agent.agent_id,
+                        "model": agent.client.model,
+                        "answer": r["answer"],
+                        "confidence": r["confidence"],
+                        "reasoning": r["reasoning"],
+                        "parse_failed": r["parse_failed"],
+                        "prompt_tokens": r["prompt_tokens"],
+                        "completion_tokens": r["completion_tokens"],
+                    }
+                )
 
         responses = new_responses
         round_log.append({"round": round_num, "responses": responses})
