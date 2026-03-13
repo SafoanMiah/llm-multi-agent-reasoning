@@ -12,7 +12,6 @@ Usage:
 
 import argparse
 import csv
-import time
 from pathlib import Path
 from datetime import datetime
 
@@ -124,15 +123,13 @@ def run_experiment(topology: str):
     output_path = results_dir / f"{topology}_{timestamp}.csv"
 
     total_correct = 0
-    start_time = time.time()
+    total_tokens = 0
 
     with open(output_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
         writer.writeheader()
 
         for i, q in enumerate(questions):
-            q_start = time.time()
-
             result = runner(agents, q["question"])
             rows = flatten_results(
                 topology, i, q["question"], q["expected_answer"], result
@@ -143,22 +140,26 @@ def run_experiment(topology: str):
 
             is_correct = result["group_answer"] == q["expected_answer"]
             total_correct += int(is_correct)
-            elapsed = time.time() - q_start
+
+            # Count tokens for this question
+            q_tokens = sum(
+                r.get("prompt_tokens", 0) + r.get("completion_tokens", 0) for r in rows
+            )
+            total_tokens += q_tokens
 
             print(
                 f"  [{i + 1}/{len(questions)}] "
                 f"{'✔️' if is_correct else '❌'} "
                 f"expected={q['expected_answer']}, got={result['group_answer']} "
-                f"({elapsed:.1f}s)"
+                f"({q_tokens:,} tokens)"
             )
 
-    total_time = time.time() - start_time
     accuracy = total_correct / len(questions) * 100
 
     print(f"\n{'=' * 50}")
     print(f"Finished: {topology}")
     print(f"Accuracy: {total_correct}/{len(questions)} ({accuracy:.1f}%)")
-    print(f"Time: {total_time:.0f}s")
+    print(f"Total tokens: {total_tokens:,}")
     print(f"Saved to: {output_path}")
     print(f"{'=' * 50}")
 

@@ -2,9 +2,9 @@
 Chain Topology
 
 Agents answer sequentially, each seeing only the previous agent's response.
-The chain runs 4 times with a different starting agent each time,
+The chain runs N times with a different starting agent each time,
 so every agent gets a turn as the final (most informed) agent.
-Final answer is majority vote from the 4 chain-ending agents.
+Final answer is majority vote from the N chain-ending agents.
 """
 
 from core.agent import Agent
@@ -35,8 +35,12 @@ def run_single_chain(
         agent.reset()
 
         if i == 0:
+            # First agent in chain: answer independently
             r = agent.initial_response(question)
         else:
+            # Subsequent agents: form own opinion first, then revise with previous agent's info
+            agent.initial_response(question)  # populates agent.history for revise()
+
             prev = responses[-1]
             peer_info = (
                 f"Previous agent's response:\n"
@@ -44,8 +48,6 @@ def run_single_chain(
                 f"confidence={prev['confidence']}, "
                 f"reasoning: {prev['reasoning']}"
             )
-            # Give agent a blank initial so revise has history
-            agent.history.append({"answer": None, "confidence": None, "reasoning": ""})
             r = agent.revise(question, peer_info=peer_info)
 
         responses.append(build_response(agent_idx, r))
@@ -54,7 +56,7 @@ def run_single_chain(
 
 
 def run_chain(agents: list[Agent], question: str) -> dict:
-    """Run chain topology: 4 rotations, each agent ends once."""
+    """Run chain topology: N rotations, each agent ends once."""
     n = len(agents)
     chain_log = []
     final_answers = []

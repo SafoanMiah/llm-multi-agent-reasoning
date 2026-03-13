@@ -1,6 +1,7 @@
 import json
 import re
 from core.llm_client import LLMClient
+from core.config import TEMPERATURE
 
 AGENT_SYSTEM_PROMPT = """
 You are a mathematical reasoning agent. Solve the given problem step by step.
@@ -84,7 +85,7 @@ class Agent:
     def initial_response(self, question: str) -> dict:
         """Generate first-round answer for a question."""
         raw = self.client.prompt(
-            question, system_message=AGENT_SYSTEM_PROMPT, temperature=0.7
+            question, system_message=AGENT_SYSTEM_PROMPT, temperature=TEMPERATURE
         )
         parsed = self.parse_response(raw)
 
@@ -101,7 +102,9 @@ class Agent:
         prompt = REVISION_PROMPT_TEMPLATE.format(
             question=question, previous_response=previous, peer_info=peer_info
         )
-        raw = self.client.prompt(prompt, temperature=0.7)
+        raw = self.client.prompt(
+            prompt, system_message=AGENT_SYSTEM_PROMPT, temperature=TEMPERATURE
+        )
         parsed = self.parse_response(raw)
 
         # Add token stats from the LLM call
