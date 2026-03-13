@@ -11,6 +11,19 @@ from core.agent import Agent
 from topology.voting import VOTING_METHOD
 
 
+def build_response(agent_idx, r) -> dict:
+    """Build a standard response dict."""
+    return {
+        "agent_id": agent_idx,
+        "answer": r["answer"],
+        "confidence": r["confidence"],
+        "reasoning": r["reasoning"],
+        "parse_failed": r["parse_failed"],
+        "prompt_tokens": r["prompt_tokens"],
+        "completion_tokens": r["completion_tokens"],
+    }
+
+
 def run_single_chain(
     agents: list[Agent], question: str, order: list[int]
 ) -> list[dict]:
@@ -22,10 +35,8 @@ def run_single_chain(
         agent.reset()
 
         if i == 0:
-            # First in chain: answer blind
             r = agent.initial_response(question)
         else:
-            # See previous agent's response only
             prev = responses[-1]
             peer_info = (
                 f"Previous agent's response:\n"
@@ -33,22 +44,11 @@ def run_single_chain(
                 f"confidence={prev['confidence']}, "
                 f"reasoning: {prev['reasoning']}"
             )
-            r = agent.initial_response(question)
-            # Reset and use revise instead so peer info is included
-            agent.history.pop()
+            # Give agent a blank initial so revise has history
+            agent.history.append({"answer": None, "confidence": None, "reasoning": ""})
             r = agent.revise(question, peer_info=peer_info)
 
-        responses.append(
-            {
-                "agent_id": agent_idx,
-                "answer": r["answer"],
-                "confidence": r["confidence"],
-                "reasoning": r["reasoning"],
-                "parse_failed": r["parse_failed"],
-                "prompt_tokens": r["prompt_tokens"],
-                "completion_tokens": r["completion_tokens"],
-            }
-        )
+        responses.append(build_response(agent_idx, r))
 
     return responses
 
@@ -71,12 +71,10 @@ def run_chain(agents: list[Agent], question: str) -> dict:
             }
         )
 
-        # Last agent in chain is the most informed
         last = responses[-1]
         if last["answer"] is not None:
             final_answers.append(last["answer"])
 
-    # Majority vote from the 4 chain-ending agents
     group_answer = VOTING_METHOD(final_answers)
 
     return {
