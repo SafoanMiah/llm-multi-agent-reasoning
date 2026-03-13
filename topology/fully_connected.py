@@ -48,7 +48,6 @@ def run_fully_connected(
                 "parse_failed": r["parse_failed"],
                 "prompt_tokens": r["prompt_tokens"],
                 "completion_tokens": r["completion_tokens"],
-                "response_time_s": r["response_time_s"],
             }
         )
 

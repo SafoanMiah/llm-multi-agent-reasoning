@@ -88,10 +88,9 @@ class Agent:
         )
         parsed = self.parse_response(raw)
 
-        # Add token and time stats from the LLM call
+        # Add token stats from the LLM call
         parsed["prompt_tokens"] = self.client.last_prompt_tokens
         parsed["completion_tokens"] = self.client.last_completion_tokens
-        parsed["response_time_s"] = self.client.last_response_time_s
 
         self.history.append(parsed)
         return parsed
@@ -105,10 +104,9 @@ class Agent:
         raw = self.client.prompt(prompt, temperature=0.7)
         parsed = self.parse_response(raw)
 
-        # Add token and time stats from the LLM call
+        # Add token stats from the LLM call
         parsed["prompt_tokens"] = self.client.last_prompt_tokens
         parsed["completion_tokens"] = self.client.last_completion_tokens
-        parsed["response_time_s"] = self.client.last_response_time_s
 
         self.history.append(parsed)
         return parsed

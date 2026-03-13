@@ -6,10 +6,10 @@ Centralized configuration for multi-agent LLM reasoning experiments.
 
 # Small
 MODELS = [
-    "gemma3:4b",
-    "phi4-mini",
-    "llama3.2:3b",
-    "qwen2.5:3b-instruct",
+    "gemma3:4b",  # Google
+    "phi4-mini",  #
+    "llama3.2:3b",  # Meta
+    "qwen2.5:3b-instruct",  # Alibaba
 ]
 
 # Medium
@@ -18,7 +18,7 @@ MODELS = [
 # Experimental parameters
 NUM_AGENTS = 4
 NUM_ROUNDS = 3
-NUM_QUESTIONS = 150
+NUM_QUESTIONS = 200
 DATASET_SEED = 42
 
 # LLM inference parameters

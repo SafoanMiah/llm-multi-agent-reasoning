@@ -48,7 +48,6 @@ FIELDNAMES = [
     "parse_failed",
     "prompt_tokens",
     "completion_tokens",
-    "response_time_s",
 ]
 
 
@@ -102,7 +101,6 @@ def flatten_results(topology, q_idx, question, expected, result) -> list[dict]:
                     "parse_failed": agent_r.get("parse_failed", False),
                     "prompt_tokens": agent_r.get("prompt_tokens", 0),
                     "completion_tokens": agent_r.get("completion_tokens", 0),
-                    "response_time_s": agent_r.get("response_time_s", 0.0),
                 }
             )
 
@@ -149,7 +147,7 @@ def run_experiment(topology: str):
 
             print(
                 f"  [{i + 1}/{len(questions)}] "
-                f"{'✓' if is_correct else '✗'} "
+                f"{'✓' if is_correct else 'INCORRECT'} "
                 f"expected={q['expected_answer']}, got={result['group_answer']} "
                 f"({elapsed:.1f}s)"
             )

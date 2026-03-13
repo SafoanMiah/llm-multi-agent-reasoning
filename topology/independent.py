@@ -30,7 +30,6 @@ def run_independent(agents: list[Agent], question: str) -> dict:
                 "parse_failed": responses[i]["parse_failed"],
                 "prompt_tokens": responses[i]["prompt_tokens"],
                 "completion_tokens": responses[i]["completion_tokens"],
-                "response_time_s": responses[i]["response_time_s"],
             }
             for i, agent in enumerate(agents)
         ],
