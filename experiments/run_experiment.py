@@ -17,7 +17,7 @@ from datetime import datetime
 
 from core.llm_client import LLMClient
 from core.agent import Agent
-from core.config import MODELS, NUM_QUESTIONS, DATASET_SEED, TOPOLOGIES
+from core.config import MODELS, NUM_AGENTS, NUM_ROUNDS, NUM_QUESTIONS, DATASET_SEED, TOPOLOGIES
 from dataset.gsm8k_loader import load_gsm8k
 from topology.independent import run_independent
 from topology.fully_connected import run_fully_connected
@@ -56,6 +56,11 @@ def create_agents() -> list[Agent]:
         Agent(agent_id=i, client=LLMClient(model=model))
         for i, model in enumerate(MODELS)
     ]
+
+
+def get_config_folder_name() -> str:
+    """Generate folder name based on config settings (e.g., A4-R3-Q150-S0)."""
+    return f"A{NUM_AGENTS}-R{NUM_ROUNDS}-Q{NUM_QUESTIONS}-S{DATASET_SEED}"
 
 
 def flatten_results(topology, q_idx, question, expected, result) -> list[dict]:
@@ -116,9 +121,10 @@ def run_experiment(topology: str):
     questions = load_gsm8k(n=NUM_QUESTIONS, seed=DATASET_SEED)
     runner = TOPOLOGY_RUNNERS[topology]
 
-    # Output file
-    results_dir = Path("results")
-    results_dir.mkdir(exist_ok=True)
+    # Output file - use config-based folder
+    config_folder = get_config_folder_name()
+    results_dir = Path("results") / config_folder
+    results_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_path = results_dir / f"{topology}_{timestamp}.csv"
 

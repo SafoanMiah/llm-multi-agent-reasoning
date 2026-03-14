@@ -18,8 +18,8 @@ MODELS = [
 # Experimental parameters
 NUM_AGENTS = 4
 # Rounds for mediator and full, intermidiate is 1, chain rounds = models
-NUM_ROUNDS = 3
-NUM_QUESTIONS = 150
+NUM_ROUNDS = 5
+NUM_QUESTIONS = 20
 DATASET_SEED = 0
 
 # LLM inference parameters
