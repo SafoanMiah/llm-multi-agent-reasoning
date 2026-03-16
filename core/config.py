@@ -19,7 +19,7 @@ MODELS = [
 NUM_AGENTS = 4
 # Rounds for mediator and full, intermidiate is 1, chain rounds = models
 NUM_ROUNDS = 5
-NUM_QUESTIONS = 100
+NUM_QUESTIONS = 200
 DATASET_SEED = 0
 
 # LLM inference parameters

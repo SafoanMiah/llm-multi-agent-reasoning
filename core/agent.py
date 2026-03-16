@@ -52,9 +52,10 @@ Respond in EXACTLY this JSON format and nothing else:
 class Agent:
     """Reasoning agent that answers questions and tracks belief across rounds."""
 
-    def __init__(self, agent_id: int, client: LLMClient):
+    def __init__(self, agent_id: int, client: LLMClient, temperature: float = None):
         self.agent_id = agent_id
         self.client = client
+        self.temperature = temperature if temperature is not None else TEMPERATURE
         self.history = []  # list of parsed responses per round
 
     def parse_response(self, raw: str) -> dict:
@@ -85,7 +86,7 @@ class Agent:
     def initial_response(self, question: str) -> dict:
         """Generate first-round answer for a question."""
         raw = self.client.prompt(
-            question, system_message=AGENT_SYSTEM_PROMPT, temperature=TEMPERATURE
+            question, system_message=AGENT_SYSTEM_PROMPT, temperature=self.temperature
         )
         parsed = self.parse_response(raw)
 
@@ -103,7 +104,7 @@ class Agent:
             question=question, previous_response=previous, peer_info=peer_info
         )
         raw = self.client.prompt(
-            prompt, system_message=AGENT_SYSTEM_PROMPT, temperature=TEMPERATURE
+            prompt, system_message=AGENT_SYSTEM_PROMPT, temperature=self.temperature
         )
         parsed = self.parse_response(raw)
 

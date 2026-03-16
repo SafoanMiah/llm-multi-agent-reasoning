@@ -17,7 +17,15 @@ from datetime import datetime
 
 from core.llm_client import LLMClient
 from core.agent import Agent
-from core.config import MODELS, NUM_AGENTS, NUM_ROUNDS, NUM_QUESTIONS, DATASET_SEED, TOPOLOGIES
+from core.config import (
+    MODELS,
+    NUM_ROUNDS,
+    NUM_QUESTIONS,
+    DATASET_SEED,
+    TOPOLOGIES,
+    TEMPERATURE,
+    OLLAMA_BASE_URL,
+)
 from dataset.gsm8k_loader import load_gsm8k
 from topology.independent import run_independent
 from topology.fully_connected import run_fully_connected
@@ -50,17 +58,28 @@ FIELDNAMES = [
 ]
 
 
-def create_agents() -> list[Agent]:
+def create_agents(temperature: float = None, base_url: str = None) -> list[Agent]:
     """Create one agent per model defined in config."""
     return [
-        Agent(agent_id=i, client=LLMClient(model=model))
+        Agent(
+            agent_id=i,
+            client=LLMClient(model=model, base_url=base_url),
+            temperature=temperature,
+        )
         for i, model in enumerate(MODELS)
     ]
 
 
-def get_config_folder_name() -> str:
-    """Generate folder name based on config settings (e.g., A4-R3-Q150-S0)."""
-    return f"A{NUM_AGENTS}-R{NUM_ROUNDS}-Q{NUM_QUESTIONS}-S{DATASET_SEED}"
+def get_config_folder_name(
+    num_agents: int,
+    num_rounds: int,
+    num_questions: int,
+    seed: int,
+    start_idx: int = 0,
+) -> str:
+    """Generate folder name based on config settings (e.g., A4-R3-Q150-S0-START100)."""
+    start_suffix = f"-START{start_idx}" if start_idx > 0 else ""
+    return f"A{num_agents}-R{num_rounds}-Q{num_questions}-S{seed}{start_suffix}"
 
 
 def flatten_results(topology, q_idx, question, expected, result) -> list[dict]:
@@ -111,18 +130,47 @@ def flatten_results(topology, q_idx, question, expected, result) -> list[dict]:
     return rows
 
 
-def run_experiment(topology: str):
+def run_experiment(
+    topology: str,
+    start_idx: int = 0,
+    num_questions: int = None,
+    num_rounds: int = None,
+    seed: int = None,
+    temperature: float = None,
+    base_url: str = None,
+):
     """Run a full experiment for one topology and save results."""
+    # Use CLI overrides if provided, otherwise use config defaults
+    n_questions = num_questions if num_questions is not None else NUM_QUESTIONS
+    n_rounds = num_rounds if num_rounds is not None else NUM_ROUNDS
+    dataset_seed = seed if seed is not None else DATASET_SEED
+    n_temperature = temperature if temperature is not None else TEMPERATURE
+    n_base_url = base_url if base_url is not None else OLLAMA_BASE_URL
+
     print(f"\n{'=' * 50}")
     print(f"Running experiment: {topology}")
+    print(f"Questions: {n_questions} (starting at {start_idx})")
+    if topology in ("full", "mediator"):
+        print(f"Rounds: {n_rounds}")
+    else:
+        print("Rounds: N/A (topology-specific)")
+    print(f"Seed: {dataset_seed}")
+    print(f"Temperature: {n_temperature}")
+    print(f"Base URL: {n_base_url}")
     print(f"{'=' * 50}")
 
-    agents = create_agents()
-    questions = load_gsm8k(n=NUM_QUESTIONS, seed=DATASET_SEED)
+    agents = create_agents(temperature=n_temperature, base_url=n_base_url)
+    questions = load_gsm8k(n=n_questions, seed=dataset_seed)[start_idx:]
     runner = TOPOLOGY_RUNNERS[topology]
 
     # Output file - use config-based folder
-    config_folder = get_config_folder_name()
+    config_folder = get_config_folder_name(
+        num_agents=len(MODELS),
+        num_rounds=n_rounds,
+        num_questions=n_questions,
+        seed=dataset_seed,
+        start_idx=start_idx,
+    )
     results_dir = Path("results") / config_folder
     results_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -136,9 +184,14 @@ def run_experiment(topology: str):
         writer.writeheader()
 
         for i, q in enumerate(questions):
-            result = runner(agents, q["question"])
+            actual_idx = i + start_idx
+            # Pass num_rounds only to topologies that support it
+            if topology in ("full", "mediator"):
+                result = runner(agents, q["question"], num_rounds=n_rounds)
+            else:
+                result = runner(agents, q["question"])
             rows = flatten_results(
-                topology, i, q["question"], q["expected_answer"], result
+                topology, actual_idx, q["question"], q["expected_answer"], result
             )
 
             for row in rows:
@@ -154,7 +207,7 @@ def run_experiment(topology: str):
             total_tokens += q_tokens
 
             print(
-                f"  [{i + 1}/{len(questions)}] "
+                f"  [{actual_idx + 1}/{len(questions) + start_idx}] "
                 f"{'✔️' if is_correct else '❌'} "
                 f"expected={q['expected_answer']}, got={result['group_answer']} "
                 f"({q_tokens:,} tokens)"
@@ -171,7 +224,24 @@ def run_experiment(topology: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run multi-agent topology experiment")
+    parser = argparse.ArgumentParser(
+        description="Run multi-agent topology experiment",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  Run all topologies with config defaults:
+    python -m experiments.run_experiment
+
+  Run specific topology:
+    python -m experiments.run_experiment --topology full
+
+  Run with 200 questions, 10 rounds, custom seed:
+    python -m experiments.run_experiment --questions 200 --rounds 10 --seed 42
+
+  Run questions 100-200 (skip first 100):
+    python -m experiments.run_experiment --questions 200 --start 100
+        """,
+    )
     parser.add_argument(
         "--topology",
         type=str,
@@ -179,8 +249,57 @@ if __name__ == "__main__":
         default=None,
         help="Topology to run. If not set, runs all topologies.",
     )
+    parser.add_argument(
+        "--questions",
+        "-q",
+        type=int,
+        default=None,
+        help=f"Number of questions to run (default: {NUM_QUESTIONS} from config)",
+    )
+    parser.add_argument(
+        "--rounds",
+        "-r",
+        type=int,
+        default=None,
+        help=f"Number of reasoning rounds (default: {NUM_ROUNDS} from config)",
+    )
+    parser.add_argument(
+        "--seed",
+        "-s",
+        type=int,
+        default=None,
+        help=f"Dataset seed (default: {DATASET_SEED} from config)",
+    )
+    parser.add_argument(
+        "--start",
+        type=int,
+        default=0,
+        help="Starting question index (0-based). Skips this many questions.",
+    )
+    parser.add_argument(
+        "--temperature",
+        "-t",
+        type=float,
+        default=None,
+        help=f"Temperature for LLM sampling (default: {TEMPERATURE} from config)",
+    )
+    parser.add_argument(
+        "--base-url",
+        "-u",
+        type=str,
+        default=None,
+        help=f"Ollama base URL (default: {OLLAMA_BASE_URL} from config)",
+    )
     args = parser.parse_args()
 
     topologies = [args.topology] if args.topology else TOPOLOGIES
     for t in topologies:
-        run_experiment(t)
+        run_experiment(
+            t,
+            start_idx=args.start,
+            num_questions=args.questions,
+            num_rounds=args.rounds,
+            seed=args.seed,
+            temperature=args.temperature,
+            base_url=args.base_url,
+        )

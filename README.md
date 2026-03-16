@@ -19,25 +19,66 @@ This project investigates how communication topology affects reasoning in multi-
    ```
 
 #### Usage
-Run all experiment:
+
+##### Basic Usage
+Run all topologies with config defaults:
 ```bash
-    python -m experiments.run_experiment
+python -m experiments.run_experiment
 ```
 
-Run specific topologies:
+Run specific topology:
 ```bash
-    python -m experiments.run_experiment --topology independent
-    python -m experiments.run_experiment --topology full
-    python -m experiments.run_experiment --topology mediator
-    python -m experiments.run_experiment --topology chain
+python -m experiments.run_experiment --topology full
 ```
 
 Available topologies: `independent`, `full`, `mediator`, `chain`
 
-#### Configuration
-Configurable via `config.yaml`
+##### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--topology` | - | Topology to run (runs all if omitted) | `independent, full, mediator, chain` |
+| `--questions` | `-q` | Number of questions to run | `200` (from config) |
+| `--rounds` | `-r` | Number of reasoning rounds per question | `5` (from config) |
+| `--seed` | `-s` | Dataset random seed | `0` (from config) |
+| `--start` | - | Starting question index (skip first N) | `0` |
+| `--temperature` | `-t` | Temperature for LLM sampling | `0.4` (from config) |
+| `--base-url` | `-u` | Ollama base URL | `http://localhost:11434` (from config) |
+
+##### Examples
+
+Run with custom questions and rounds:
+```bash
+python -m experiments.run_experiment --questions 100 --rounds 10
+```
+
+Run questions 100-200 (skip first 100):
+```bash
+python -m experiments.run_experiment --questions 200 --start 100
+```
+
+Run specific topology with custom settings:
+```bash
+python -m experiments.run_experiment --topology mediator --questions 50 --rounds 3
+```
+
+Run with higher temperature:
+```bash
+python -m experiments.run_experiment --temperature 0.8
+```
+
+Run with custom Ollama URL:
+```bash
+python -m experiments.run_experiment --base-url http://192.168.1.100:11434
+```
+
+##### Configuration
+
+Base configuration is in [`core/config.py`](core/config.py). Command-line flags override config values.
 
 Default settings:
 - 4 agents (one each: gemma3:4b, phi4-mini, llama3.2:3b, qwen2.5:3b-instruct)
 - 5 rounds of reasoning per question
-- 100 questions from GSM8K test split
+- 200 questions from GSM8K test split
+- Temperature: 0.4
+- Ollama base URL: http://localhost:11434
