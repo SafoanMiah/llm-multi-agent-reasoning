@@ -1,7 +1,5 @@
 Model choice
 
-kaleido
-
 Models:
 - Qwen2.5-7B-Instruct
 - Llama-3.1-8B

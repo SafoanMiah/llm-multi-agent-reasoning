@@ -37,5 +37,5 @@ Configurable via `config.yaml`
 
 Default settings:
 - 4 agents (one each: gemma3:4b, phi4-mini, llama3.2:3b, qwen2.5:3b-instruct)
-- 3 rounds of reasoning per question
-- 150 questions from GSM8K test split
+- 5 rounds of reasoning per question
+- 100 questions from GSM8K test split
