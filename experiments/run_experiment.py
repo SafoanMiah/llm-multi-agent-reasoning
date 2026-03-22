@@ -8,6 +8,7 @@ Usage:
     python -m experiments.run_experiment --topology full
     python -m experiments.run_experiment --topology mediator
     python -m experiments.run_experiment --topology chain
+    python -m experiments.run_experiment --topology self_refine
 """
 
 import argparse
@@ -31,6 +32,7 @@ from topology.independent import run_independent
 from topology.fully_connected import run_fully_connected
 from topology.mediator import run_mediator
 from topology.chain import run_chain
+from topology.self_refine import run_self_refine
 
 TOPOLOGY_RUNNERS = {
     "independent": run_independent,
