@@ -6,19 +6,18 @@ Centralized configuration for multi-agent LLM reasoning experiments.
 
 # Small
 MODELS = [
-    "gemma3:4b",  # Google
-    "phi4-mini",  #
-    "llama3.2:3b",  # Meta
+    "phi4:14b",
+    "phi4-mini",  # Microsoft
     "qwen2.5:3b-instruct",  # Alibaba
+    "gemma3:4b",  # Google
+    "llama3.2:3b",  # Meta
 ]
 
 # Medium
 # MODELS = ["qwen2.5:7b-instruct", "llama3.1:8b", "mistral:7b-instruct"]
 
-# Experimental parameters
-NUM_AGENTS = 4
 # Rounds for mediator and full, intermidiate is 1, chain rounds = models
-NUM_ROUNDS = 5
+NUM_ROUNDS = 1
 NUM_QUESTIONS = 200
 DATASET_SEED = 0
 
@@ -27,4 +26,4 @@ TEMPERATURE = 0.4
 OLLAMA_BASE_URL = "http://localhost:11434"
 
 # Topologies available
-TOPOLOGIES = ["independent", "chain", "full", "mediator"]
+TOPOLOGIES = ["independent", "chain", "full", "mediator", "self_refine"]

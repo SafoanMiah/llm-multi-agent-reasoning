@@ -39,6 +39,7 @@ TOPOLOGY_RUNNERS = {
     "full": run_fully_connected,
     "mediator": run_mediator,
     "chain": run_chain,
+    "self_refine": run_self_refine,
 }
 
 FIELDNAMES = [
@@ -73,7 +74,6 @@ def create_agents(temperature: float = None, base_url: str = None) -> list[Agent
 
 
 def get_config_folder_name(
-    num_agents: int,
     num_rounds: int,
     num_questions: int,
     seed: int,
@@ -81,7 +81,7 @@ def get_config_folder_name(
 ) -> str:
     """Generate folder name based on config settings (e.g., A4-R3-Q150-S0-START100)."""
     start_suffix = f"-START{start_idx}" if start_idx > 0 else ""
-    return f"A{num_agents}-R{num_rounds}-Q{num_questions}-S{seed}{start_suffix}"
+    return f"R{num_rounds}-Q{num_questions}-S{seed}{start_suffix}"
 
 
 def flatten_results(topology, q_idx, question, expected, result) -> list[dict]:
@@ -152,7 +152,7 @@ def run_experiment(
     print(f"\n{'=' * 50}")
     print(f"Running experiment: {topology}")
     print(f"Questions: {n_questions} (starting at {start_idx})")
-    if topology in ("full", "mediator"):
+    if topology in ("full", "mediator", "self_refine"):
         print(f"Rounds: {n_rounds}")
     else:
         print("Rounds: N/A (topology-specific)")
@@ -167,7 +167,6 @@ def run_experiment(
 
     # Output file - use config-based folder
     config_folder = get_config_folder_name(
-        num_agents=len(MODELS),
         num_rounds=n_rounds,
         num_questions=n_questions,
         seed=dataset_seed,
@@ -188,7 +187,7 @@ def run_experiment(
         for i, q in enumerate(questions):
             actual_idx = i + start_idx
             # Pass num_rounds only to topologies that support it
-            if topology in ("full", "mediator"):
+            if topology in ("full", "mediator", "self_refine"):
                 result = runner(agents, q["question"], num_rounds=n_rounds)
             else:
                 result = runner(agents, q["question"])
