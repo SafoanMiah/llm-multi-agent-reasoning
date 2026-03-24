@@ -17,7 +17,7 @@ MODELS = [
 # MODELS = ["qwen2.5:7b-instruct", "llama3.1:8b", "mistral:7b-instruct"]
 
 # Rounds for mediator and full, intermidiate is 1, chain rounds = models
-NUM_ROUNDS = 1
+NUM_ROUNDS = 5
 NUM_QUESTIONS = 200
 DATASET_SEED = 0
 
