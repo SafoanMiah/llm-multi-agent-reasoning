@@ -1,13 +1,28 @@
 ### Communication Topology and Belief Dynamics in Multi-Agent LLM Reasoning Systems
 #### Notebook: [nbviewer link](https://nbviewer.org/github/SafoanMiah/llm-multi-agent-reasoning/blob/main/analysis/analysis.ipynb)   |   Project: [github link](https://github.com/SafoanMiah/llm-multi-agent-reasoning/tree/main)
 
-This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based, chain) over iterative rounds. It'll compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
+This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based, chain) over iterative rounds. It compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
+
+[![Topology Diagrams](figures/topology_diagrams.png)](analysis/figures/topology_diagrams.png)
 
 #### Prerequisites
 
 - Python 3.10+
 - Ollama: https://ollama.com/
 - Windows Install: `irm https://ollama.com/install.ps1 | iex`
+
+#### Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/SafoanMiah/llm-multi-agent-reasoning.git
+   cd llm-multi-agent-reasoning
+   ```
+
+2. Install Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 #### Setup
 1. Pull required models via Ollama:
@@ -31,7 +46,7 @@ Run specific topology:
 python -m experiments.run_experiment --topology full
 ```
 
-Available topologies: `independent`, `full`, `mediator`, `chain`
+Available topologies: `independent`, `full`, `mediator`, `chain`, `self_refine`
 
 ##### Flags
 
@@ -82,3 +97,27 @@ Default settings:
 - 200 questions from GSM8K test split
 - Temperature: 0.4
 - Ollama base URL: http://localhost:11434
+
+##### Dataset
+
+The GSM8K test dataset is included at [`dataset/gsm8k_test.jsonl`](dataset/gsm8k_test.jsonl).
+No additional download required.
+
+##### Testing
+
+Run the test suite to verify your setup:
+```bash
+# Test individual agent behavior
+python tests/test_agent.py
+
+# Test topology pipelines
+python tests/test_pipeline.py
+```
+
+**Note:** Tests require Ollama to be running with models already pulled.
+
+##### Results
+
+Experiment results are saved to `results/<config-folder>/`. Each run creates a timestamped CSV file with per-question, per-agent, and per-round data.
+
+The analysis notebook [`analysis/analysis.ipynb`](analysis/analysis.ipynb) processes these results and generates figures in [`analysis/figures/`](analysis/figures/).

@@ -1,0 +1,2 @@
+# Python dependencies for multi-agent LLM reasoning experiments
+requests>=2.31.0

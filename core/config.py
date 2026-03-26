@@ -6,15 +6,11 @@ Centralized configuration for multi-agent LLM reasoning experiments.
 
 # Small
 MODELS = [
-    "phi4:14b",
+    "gemma3:4b",  # Google
     "phi4-mini",  # Microsoft
     "qwen2.5:3b-instruct",  # Alibaba
-    "gemma3:4b",  # Google
     "llama3.2:3b",  # Meta
 ]
-
-# Medium
-# MODELS = ["qwen2.5:7b-instruct", "llama3.1:8b", "mistral:7b-instruct"]
 
 # Rounds for mediator and full, intermidiate is 1, chain rounds = models
 NUM_ROUNDS = 5
