@@ -3,7 +3,7 @@
 
 This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based, chain) over iterative rounds. It compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
 
-[![Topology Diagrams](analysis/figures/topology_diagrams.png)]
+![Topology Diagrams](analysis/figures/topology_diagrams.png)
 
 #### Prerequisites
 
