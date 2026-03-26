@@ -21,6 +21,10 @@ This project investigates how communication topology affects reasoning in multi-
 
 2. Install Python dependencies:
    ```bash
+   # For experiments only
+   pip install requests
+
+   # For experiments + analysis notebook
    pip install -r requirements.txt
    ```
 
@@ -65,21 +69,6 @@ Available topologies: `independent`, `full`, `mediator`, `chain`, `self_refine`
 Run with custom questions and rounds:
 ```bash
 python -m experiments.run_experiment --questions 100 --rounds 10
-```
-
-Run questions 100-200 (skip first 100):
-```bash
-python -m experiments.run_experiment --questions 200 --start 100
-```
-
-Run specific topology with custom settings:
-```bash
-python -m experiments.run_experiment --topology mediator --questions 50 --rounds 3
-```
-
-Run with higher temperature:
-```bash
-python -m experiments.run_experiment --temperature 0.8
 ```
 
 Run with custom Ollama URL:
