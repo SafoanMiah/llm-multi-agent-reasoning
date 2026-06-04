@@ -1,5 +1,5 @@
 ### Communication Topology and Belief Dynamics in Multi-Agent LLM Reasoning Systems
-#### Notebook: [nbviewer link](https://nbviewer.org/github/SafoanMiah/llm-multi-agent-reasoning/blob/main/analysis/analysis.ipynb)   |   Project: [github link](https://github.com/SafoanMiah/llm-multi-agent-reasoning/tree/main)
+#### Notebook: [nbviewer link](https://nbviewer.org/github/SafoanMiah/llm-multi-agent-reasoning/blob/main/analysis/analysis.ipynb)   |   Project: [github link](https://github.com/SafoanMiah/llm-multi-agent-reasoning/tree/main)   |   Paper: [github link](https://github.com/SafoanMiah/llm-multi-agent-reasoning/blob/main/dissetation-paper.pdf)
 
 This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based, chain) over iterative rounds. It compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
 
