@@ -1,4 +1,4 @@
-### Communication Topology and Belief Dynamics in Multi-Agent LLM Reasoning Systems
+## Communication Topology and Belief Dynamics in Multi-Agent LLM Reasoning Systems
 #### Notebook: [nbviewer link](https://nbviewer.org/github/SafoanMiah/llm-multi-agent-reasoning/blob/main/analysis/analysis.ipynb)   |   Project: [github link](https://github.com/SafoanMiah/llm-multi-agent-reasoning/tree/main)   |   Paper: [github link](https://github.com/SafoanMiah/llm-multi-agent-reasoning/blob/main/dissetation-paper.pdf)
 
 This project investigates how communication topology affects reasoning in multi-agent LLM systems. Multiple agents solve GSM8K math problems under different communication structures (independent, fully connected, mediator-based, chain) over iterative rounds. It compares accuracy, convergence, and cost across topologies, treating communication structure as the primary experimental variable.
@@ -11,7 +11,7 @@ This project investigates how communication topology affects reasoning in multi-
 - Ollama: https://ollama.com/
 - Windows Install: `irm https://ollama.com/install.ps1 | iex`
 
-#### Installation
+### Installation
 
 1. Clone this repository:
    ```bash
@@ -28,7 +28,7 @@ This project investigates how communication topology affects reasoning in multi-
    pip install -r requirements.txt
    ```
 
-#### Setup
+## Setup
 1. Pull required models via Ollama:
    ```bash
    ollama pull gemma3:4b
@@ -39,7 +39,7 @@ This project investigates how communication topology affects reasoning in multi-
 
 #### Usage
 
-##### Basic Usage
+#### Basic Usage
 Run all topologies with config defaults:
 ```bash
 python -m experiments.run_experiment
@@ -52,7 +52,7 @@ python -m experiments.run_experiment --topology full
 
 Available topologies: `independent`, `full`, `mediator`, `chain`, `self_refine`
 
-##### Flags
+#### Flags
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
@@ -64,7 +64,7 @@ Available topologies: `independent`, `full`, `mediator`, `chain`, `self_refine`
 | `--temperature` | `-t` | Temperature for LLM sampling | `0.4` (from config) |
 | `--base-url` | `-u` | Ollama base URL | `http://localhost:11434` (from config) |
 
-##### Examples
+#### Examples
 
 Run with custom questions and rounds:
 ```bash
@@ -76,7 +76,7 @@ Run with custom Ollama URL:
 python -m experiments.run_experiment --base-url http://192.168.1.100:11434
 ```
 
-##### Configuration
+#### Configuration
 
 Base configuration is in [`core/config.py`](core/config.py). Command-line flags override config values.
 
@@ -87,12 +87,12 @@ Default settings:
 - Temperature: 0.4
 - Ollama base URL: http://localhost:11434
 
-##### Dataset
+#### Dataset
 
 The GSM8K test dataset is included at [`dataset/gsm8k_test.jsonl`](dataset/gsm8k_test.jsonl).
 No additional download required.
 
-##### Testing
+#### Testing
 
 Run the test suite to verify your setup:
 ```bash
